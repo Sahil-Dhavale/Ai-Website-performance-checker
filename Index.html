@@ -1,1 +1,305 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SiteAudit AI - Website Performance & SEO Analyzer</title>
+    
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Tailwind CSS via CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            blue: '#2563EB',
+                            dark: '#111827',
+                            light: '#F9FAFB',
+                            accent: '#3B82F6'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- jsPDF CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    
+    <style>
+        /* Custom gauge animations & subtle styling */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+        }
+        .animate-spin-slow {
+            animation: spin 3s linear infinite;
+        }
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 font-sans antialiased min-h-screen flex flex-col justify-between">
 
+    <!-- Toast Notification Container -->
+    <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2"></div>
+
+    <div>
+        <!-- NAVBAR -->
+        <header class="bg-white border-b border-slate-200 sticky top-0 z-40">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+                <!-- Logo -->
+                <div class="flex items-center gap-3">
+                    <a href="#" class="flex items-center gap-2">
+                        <div class="w-9 h-9 rounded-xl bg-brand-blue text-white flex items-center justify-center font-bold text-lg shadow-md shadow-blue-500/20">
+                            <i class="fa-solid font-bold fa-chart-line"></i>
+                        </div>
+                        <span class="text-xl font-extrabold tracking-tight text-slate-900">SiteAudit <span class="text-brand-blue">AI</span></span>
+                    </a>
+                    <span class="hidden sm:inline-block px-2.5 py-0.5 text-xs font-semibold bg-blue-50 text-brand-blue border border-blue-200 rounded-full">
+                        Website Audit Tool
+                    </span>
+                </div>
+
+                <!-- Navigation Links -->
+                <nav class="hidden md:flex items-center gap-8 text-sm font-medium text-slate-600">
+                    <a href="#hero" class="hover:text-brand-blue transition-colors">Analyzer</a>
+                    <a href="#features-overview" class="hover:text-brand-blue transition-colors">Features</a>
+                    <a href="#how-it-works" class="hover:text-brand-blue transition-colors">How It Works</a>
+                </nav>
+
+                <!-- Action Button / Mobile Menu Button -->
+                <div class="flex items-center gap-3">
+                    <a href="#hero" class="hidden sm:inline-flex px-4 py-2 text-xs font-semibold text-white bg-brand-dark rounded-lg hover:bg-slate-800 transition-all shadow-sm">
+                        New Scan
+                    </a>
+                    <button id="mobile-menu-btn" class="md:hidden p-2 text-slate-600 hover:text-slate-900 focus:outline-none">
+                        <i class="fa-solid fa-bars text-xl"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Mobile Dropdown Menu -->
+            <div id="mobile-menu" class="hidden md:hidden border-b border-slate-200 bg-white px-4 pt-2 pb-4 space-y-2">
+                <a href="#hero" class="block py-2 text-sm font-medium text-slate-700 hover:text-brand-blue">Analyzer</a>
+                <a href="#features-overview" class="block py-2 text-sm font-medium text-slate-700 hover:text-brand-blue">Features</a>
+                <a href="#how-it-works" class="block py-2 text-sm font-medium text-slate-700 hover:text-brand-blue">How It Works</a>
+            </div>
+        </header>
+
+        <!-- HERO SECTION -->
+        <section id="hero" class="relative py-12 md:py-20 bg-gradient-to-b from-white via-blue-50/30 to-slate-50 border-b border-slate-200">
+            <div class="max-w-4xl mx-auto px-4 text-center">
+                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-100 text-brand-blue text-xs font-semibold mb-6">
+                    <i class="fa-solid fa-bolt"></i> Instant AI-Powered Website Insights
+                </div>
+                <h1 class="text-3xl sm:text-5xl font-extrabold text-slate-900 tracking-tight leading-tight mb-4">
+                    Understand Your Website.<br class="hidden sm:inline"/> <span class="text-brand-blue">Improve Your Performance.</span>
+                </h1>
+                <p class="text-slate-600 text-base sm:text-lg mb-8 max-w-2xl mx-auto leading-relaxed">
+                    Analyze website speed, SEO, content quality, and user experience with clear insights and actionable recommendations.
+                </p>
+
+                <!-- URL Input Form -->
+                <form id="audit-form" class="max-w-2xl mx-auto mb-4" onsubmit="handleAuditSubmit(event)">
+                    <div class="flex flex-col sm:flex-row items-center gap-2 p-2 bg-white rounded-2xl shadow-xl shadow-slate-200/60 border border-slate-200">
+                        <div class="relative w-full flex items-center">
+                            <span class="absolute left-4 text-slate-400">
+                                <i class="fa-solid fa-globe"></i>
+                            </span>
+                            <input type="text" id="url-input" placeholder="https://example.com" 
+                                class="w-full pl-11 pr-4 py-3 text-slate-800 bg-transparent text-sm focus:outline-none rounded-xl" required />
+                        </div>
+                        <button type="submit" id="submit-btn" class="w-full sm:w-auto px-7 py-3.5 bg-brand-blue hover:bg-blue-700 text-white font-semibold text-sm rounded-xl transition-all shadow-md shadow-blue-500/20 flex items-center justify-center gap-2 whitespace-nowrap">
+                            <span>Analyze Website</span>
+                            <i class="fa-solid fa-arrow-right text-xs"></i>
+                        </button>
+                    </div>
+                    <div id="url-error" class="hidden text-left text-xs text-red-500 mt-2 pl-4 flex items-center gap-1">
+                        <i class="fa-solid fa-circle-exclamation"></i> <span>Please enter a valid URL (e.g., https://example.com or example.com).</span>
+                    </div>
+                </form>
+
+                <p class="text-xs text-slate-500 flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-shield-halved text-slate-400"></i> Demo analysis • No account required
+                </p>
+            </div>
+        </section>
+
+        <!-- LOADING STATE -->
+        <section id="loading-state" class="hidden py-20 text-center">
+            <div class="max-w-md mx-auto px-4 flex flex-col items-center">
+                <div class="relative w-20 h-20 mb-6 flex items-center justify-center">
+                    <div class="absolute inset-0 rounded-full border-4 border-slate-200"></div>
+                    <div class="absolute inset-0 rounded-full border-4 border-brand-blue border-t-transparent animate-spin"></div>
+                    <i class="fa-solid fa-magnifying-glass text-brand-blue text-xl"></i>
+                </div>
+                <h3 class="text-xl font-bold text-slate-900 mb-2">Analyzing <span id="loading-url" class="text-brand-blue">website</span>...</h3>
+                <p class="text-xs text-slate-500 max-w-xs">Evaluating page speed, meta tags, structural hierarchy, accessibility, and content quality.</p>
+            </div>
+        </section>
+
+        <!-- REPORT DASHBOARD CONTAINER -->
+        <main id="report-dashboard" class="hidden max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-8">
+            
+            <!-- Demo Data Disclaimer -->
+            <div class="bg-amber-50 border border-amber-200 text-amber-800 px-4 py-3 rounded-xl text-xs sm:text-sm flex items-start sm:items-center gap-3">
+                <i class="fa-solid fa-triangle-exclamation text-amber-600 text-lg flex-shrink-0 mt-0.5 sm:mt-0"></i>
+                <div>
+                    <span class="font-bold">Demo data notice:</span> These scores are illustrative examples generated deterministically for demonstration purposes, not real-time live measurements of your server.
+                </div>
+            </div>
+
+            <!-- DASHBOARD HEADER / NAVIGATION BAR -->
+            <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                <div>
+                    <div class="flex items-center gap-2 mb-1">
+                        <span class="text-xs font-semibold px-2.5 py-0.5 bg-slate-100 text-slate-600 rounded-md">Audit Report</span>
+                        <span id="report-date" class="text-xs text-slate-400">Oct 26, 2026 • 10:00 AM</span>
+                    </div>
+                    <h2 id="report-url-title" class="text-2xl font-extrabold text-slate-900 tracking-tight break-all">https://example.com</h2>
+                    <p class="text-xs text-slate-500 mt-1">Profile Category: <span id="report-category" class="font-medium text-slate-700">Business Website</span></p>
+                </div>
+
+                <!-- Action Controls -->
+                <div class="flex flex-wrap items-center gap-3">
+                    <button onclick="downloadPDFReport()" class="px-5 py-2.5 bg-brand-blue hover:bg-blue-700 text-white text-xs font-semibold rounded-xl transition-all shadow-md shadow-blue-500/20 flex items-center gap-2">
+                        <i class="fa-solid fa-file-pdf"></i> Download Full PDF Report
+                    </button>
+                    <button onclick="resetAudit()" class="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-xl transition-all">
+                        <i class="fa-solid fa-arrow-rotate-left"></i> New Audit
+                    </button>
+                </div>
+            </div>
+
+            <!-- REPORT NAVIGATION TABS -->
+            <div class="flex border-b border-slate-200 overflow-x-auto space-x-6 text-sm font-medium text-slate-500">
+                <button onclick="switchTab('overview')" id="tab-overview" class="pb-3 border-b-2 border-brand-blue text-brand-blue font-semibold flex items-center gap-2 whitespace-nowrap">
+                    <i class="fa-solid fa-chart-pie"></i> Overview
+                </button>
+                <button onclick="switchTab('seo')" id="tab-seo" class="pb-3 border-b-2 border-transparent hover:text-slate-800 flex items-center gap-2 whitespace-nowrap">
+                    <i class="fa-solid fa-magnifying-glass-chart"></i> SEO Audit
+                </button>
+                <button onclick="switchTab('speed')" id="tab-speed" class="pb-3 border-b-2 border-transparent hover:text-slate-800 flex items-center gap-2 whitespace-nowrap">
+                    <i class="fa-solid fa-gauge-high"></i> Speed Report
+                </button>
+                <button onclick="switchTab('copy')" id="tab-copy" class="pb-3 border-b-2 border-transparent hover:text-slate-800 flex items-center gap-2 whitespace-nowrap">
+                    <i class="fa-solid fa-pen-nib"></i> Copy Generator
+                </button>
+                <button onclick="switchTab('recommendations')" id="tab-recommendations" class="pb-3 border-b-2 border-transparent hover:text-slate-800 flex items-center gap-2 whitespace-nowrap">
+                    <i class="fa-solid fa-list-check"></i> Recommendations
+                </button>
+            </div>
+
+            <!-- SECTION A: OVERVIEW & CARDS -->
+            <div id="section-overview" class="space-y-8">
+                <!-- Overall Health + 4 Score Cards -->
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                    
+                    <!-- Overall Score Box (4 Cols) -->
+                    <div class="lg:col-span-4 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col items-center justify-center text-center">
+                        <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-4">Overall Website Health</h3>
+                        
+                        <!-- Donut Graphic / Health Ring -->
+                        <div class="relative w-40 h-40 flex items-center justify-center my-2">
+                            <canvas id="healthChart" class="w-full h-full"></canvas>
+                            <div class="absolute inset-0 flex flex-col items-center justify-center">
+                                <span id="overall-score-text" class="text-4xl font-extrabold text-slate-900">75</span>
+                                <span class="text-xs text-slate-400 font-medium">/ 100</span>
+                            </div>
+                        </div>
+
+                        <div id="overall-badge" class="mt-4 px-4 py-1.5 rounded-full text-xs font-bold bg-green-100 text-green-700">
+                            Good
+                        </div>
+                        <p id="overall-desc" class="text-xs text-slate-500 mt-2 max-w-xs">
+                            Your website shows solid overall quality with minor optimization potential.
+                        </p>
+                    </div>
+
+                    <!-- 4 Performance Pillar Cards (8 Cols) -->
+                    <div class="lg:col-span-8 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        
+                        <!-- Performance Card -->
+                        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between">
+                            <div class="flex items-center justify-between mb-3">
+                                <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Performance</span>
+                                <div class="w-8 h-8 rounded-lg bg-blue-50 text-brand-blue flex items-center justify-center text-sm">
+                                    <i class="fa-solid fa-bolt"></i>
+                                </div>
+                            </div>
+                            <div class="flex items-baseline gap-2 mb-2">
+                                <span id="score-perf" class="text-3xl font-extrabold text-slate-900">72</span>
+                                <span class="text-xs text-slate-400">/ 100</span>
+                                <span id="badge-perf" class="ml-auto text-xs font-semibold px-2 py-0.5 rounded bg-amber-100 text-amber-700">Needs Work</span>
+                            </div>
+                            <!-- Progress Bar -->
+                            <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden mb-3">
+                                <div id="bar-perf" class="bg-brand-blue h-full rounded-full" style="width: 72%"></div>
+                            </div>
+                            <p class="text-xs text-slate-500">Measures page load speeds, asset responsiveness, and rendering times.</p>
+                        </div>
+
+                        <!-- SEO Card -->
+                        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between">
+                            <div class="flex items-center justify-between mb-3">
+                                <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">SEO Audit</span>
+                                <div class="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center text-sm">
+                                    <i class="fa-solid fa-magnifying-glass"></i>
+                                </div>
+                            </div>
+                            <div class="flex items-baseline gap-2 mb-2">
+                                <span id="score-seo" class="text-3xl font-extrabold text-slate-900">68</span>
+                                <span class="text-xs text-slate-400">/ 100</span>
+                                <span id="badge-seo" class="ml-auto text-xs font-semibold px-2 py-0.5 rounded bg-amber-100 text-amber-700">Needs Work</span>
+                            </div>
+                            <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden mb-3">
+                                <div id="bar-seo" class="bg-emerald-500 h-full rounded-full" style="width: 68%"></div>
+                            </div>
+                            <p class="text-xs text-slate-500">Evaluates meta structure, indexing capabilities, and search visibility.</p>
+                        </div>
+
+                        <!-- Accessibility Card -->
+                        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between">
+                            <div class="flex items-center justify-between mb-3">
+                                <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Accessibility</span>
+                                <div class="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center text-sm">
+                                    <i class="fa-solid fa-universal-access"></i>
+                                </div>
+                            </div>
+                            <div class="flex items-baseline gap-2 mb-2">
+                                <span id="score-acc" class="text-3xl font-extrabold text-slate-900">82</span>
+                                <span class="text-xs text-slate-400">/ 100</span>
+                                <span id="badge-acc" class="ml-auto text-xs font-semibold px-2 py-0.5 rounded bg-emerald-100 text-emerald-700">Good</span>
+                            </div>
+                            <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden mb-3">
+                                <div id="bar-acc" class="bg-indigo-500 h-full rounded-full" style="width: 82%"></div>
+                            </div>
+                            <p class="text-xs text-slate-500">Checks contrast ratios, image alt tags, and screen reader friendliness.</p>
+                        </div>
+
+                        <!-- Best Practices Card -->
+                        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between">
+                            <div class="flex items-center justify-between mb-3">
+                                <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Best Practices</span>
+                                <div class="w-8 h-8 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center text-sm">
+                                    <i class="fa-solid fa-shield-cat"></i>
+                                </div>
+            
